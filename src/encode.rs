@@ -392,6 +392,24 @@ pub struct Settings {
     codec: Option<AvCodec>,
 }
 
+impl Debug for Settings {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let codec = match &self.codec {
+            Some(c) => c.name(),
+            None => "None",
+        };
+
+        f.debug_struct("Settings")
+            .field("width", &self.width)
+            .field("height", &self.height)
+            .field("pixel_format", &self.pixel_format)
+            .field("keyframe_interval", &self.keyframe_interval)
+            .field("options", &self.options)
+            .field("codec", &codec)
+            .finish()
+    }
+}
+
 impl Settings {
     /// Default keyframe interval.
     const KEY_FRAME_INTERVAL: u64 = 12;
