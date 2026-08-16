@@ -491,7 +491,7 @@ impl Settings {
     }
 
     /// Get codec.
-    /// Use the user specificed codec possible
+    /// Use a user specificed codec if possible
     /// If it is not available, then try libx264 or use whatever default h264 encoder we have.
     fn codec(&self) -> Option<AvCodec> {
         if self.codec.is_some() {
