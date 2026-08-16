@@ -382,13 +382,14 @@ impl Drop for Encoder {
 }
 
 /// Holds a logical combination of encoder settings.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Settings {
     width: u32,
     height: u32,
     pixel_format: AvPixel,
     keyframe_interval: u64,
     options: Options,
+    codec: Option<AvCodec>,
 }
 
 impl Settings {
@@ -415,6 +416,7 @@ impl Settings {
             pixel_format: AvPixel::YUV420P,
             keyframe_interval: Self::KEY_FRAME_INTERVAL,
             options,
+            codec: None,
         }
     }
 
@@ -444,6 +446,7 @@ impl Settings {
             pixel_format,
             keyframe_interval: Self::KEY_FRAME_INTERVAL,
             options,
+            codec: None,
         }
     }
 
@@ -456,6 +459,19 @@ impl Settings {
     pub fn with_keyframe_interval(mut self, keyframe_interval: u64) -> Self {
         self.set_keyframe_interval(keyframe_interval);
         self
+    }
+
+    /// Set a custom codec to use
+    /// Returns whether the codec was found and set
+    pub fn with_codec(&mut self, codec: &str) -> bool {
+        let codec = ffmpeg::encoder::find_by_name(codec);
+        let found_codec = codec.is_some();
+
+        if found_codec {
+            self.codec = codec;
+        }
+
+        found_codec
     }
 
     /// Apply the settings to an encoder.
@@ -475,9 +491,13 @@ impl Settings {
     }
 
     /// Get codec.
+    /// Use the user specificed codec possible
+    /// If it is not available, then try libx264 or use whatever default h264 encoder we have.
     fn codec(&self) -> Option<AvCodec> {
-        // Try to use the libx264 decoder. If it is not available, then use use whatever default
-        // h264 decoder we have.
+        if self.codec.is_some() {
+            return self.codec;
+        }
+
         Some(
             ffmpeg::encoder::find_by_name("libx264")
                 .unwrap_or(ffmpeg::encoder::find(AvCodecId::H264)?),
