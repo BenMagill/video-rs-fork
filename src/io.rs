@@ -1,10 +1,10 @@
 extern crate ffmpeg_next as ffmpeg;
 
+use ffmpeg::Error as AvError;
 use ffmpeg::codec::packet::Packet as AvPacket;
 use ffmpeg::ffi::AV_TIME_BASE_Q;
 use ffmpeg::format::context::{Input as AvInput, Output as AvOutput};
 use ffmpeg::media::Type as AvMediaType;
-use ffmpeg::Error as AvError;
 use ffmpeg_next::ffi::av_seek_frame;
 
 use crate::error::Error;
@@ -527,7 +527,9 @@ pub(crate) mod private {
         type Out = ();
 
         fn write_header(&mut self) -> Result<()> {
-            Ok(self.output.write_header()?)
+            // Fix for ffmpeg-next v9
+            self.output.write_header()?;
+            Ok(())
         }
 
         fn write(&mut self, packet: &mut AvPacket) -> Result<()> {

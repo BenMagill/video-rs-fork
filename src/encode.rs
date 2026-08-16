@@ -1,5 +1,9 @@
 extern crate ffmpeg_next as ffmpeg;
 
+use std::fmt::Debug;
+
+use ffmpeg::Error as AvError;
+use ffmpeg::Rational as AvRational;
 use ffmpeg::codec::codec::Codec as AvCodec;
 use ffmpeg::codec::encoder::video::Encoder as AvEncoder;
 use ffmpeg::codec::encoder::video::Video as AvVideo;
@@ -13,14 +17,12 @@ use ffmpeg::util::error::EAGAIN;
 use ffmpeg::util::format::Pixel as AvPixel;
 use ffmpeg::util::mathematics::rescale::TIME_BASE;
 use ffmpeg::util::picture::Type as AvFrameType;
-use ffmpeg::Error as AvError;
-use ffmpeg::Rational as AvRational;
 
 use crate::error::Error;
 use crate::ffi;
 #[cfg(feature = "ndarray")]
 use crate::frame::Frame;
-use crate::frame::{PixelFormat, RawFrame, FRAME_PIXEL_FORMAT};
+use crate::frame::{FRAME_PIXEL_FORMAT, PixelFormat, RawFrame};
 use crate::io::private::Write;
 use crate::io::{Writer, WriterBuilder};
 use crate::location::Location;

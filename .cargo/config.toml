@@ -1,0 +1,3 @@
+# Patch required for bindgen to compile the project on my machine only (due to xtensa setup I have)
+[env]
+LIBCLANG_PATH = { value = "/Library/Developer/CommandLineTools/usr/lib", force = true }
