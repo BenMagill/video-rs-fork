@@ -243,10 +243,10 @@ impl Encoder {
             .flags()
             .contains(AvFormatFlags::GLOBAL_HEADER);
 
-        let mut writer_stream = writer.output.add_stream(settings.codec())?;
+        let mut writer_stream = writer.output.add_stream(settings.codec)?;
         let writer_stream_index = writer_stream.index();
 
-        let mut encoder_context = match settings.codec() {
+        let mut encoder_context = match settings.codec {
             Some(codec) => ffi::codec_context_as(&codec)?,
             None => AvContext::new(),
         };
@@ -416,7 +416,7 @@ impl Settings {
             pixel_format: AvPixel::YUV420P,
             keyframe_interval: Self::KEY_FRAME_INTERVAL,
             options,
-            codec: None,
+            codec: Self::default_codec(),
         }
     }
 
@@ -446,7 +446,7 @@ impl Settings {
             pixel_format,
             keyframe_interval: Self::KEY_FRAME_INTERVAL,
             options,
-            codec: None,
+            codec: Self::default_codec(),
         }
     }
 
@@ -461,7 +461,7 @@ impl Settings {
         self
     }
 
-    /// Set a custom codec to use
+    /// Set a custom codec
     /// Returns whether the codec was found and set
     pub fn with_codec(&mut self, codec: &str) -> bool {
         let codec = ffmpeg::encoder::find_by_name(codec);
@@ -472,6 +472,15 @@ impl Settings {
         }
 
         found_codec
+    }
+
+    /// Try to use the libx264 decoder. If it is not available, then use use whatever default
+    ///  h264 decoder we have.
+    fn default_codec() -> Option<AvCodec> {
+        Some(
+            ffmpeg::encoder::find_by_name("libx264")
+                .unwrap_or(ffmpeg::encoder::find(AvCodecId::H264)?),
+        )
     }
 
     /// Apply the settings to an encoder.
@@ -488,20 +497,6 @@ impl Settings {
         encoder.set_height(self.height);
         encoder.set_format(self.pixel_format);
         encoder.set_frame_rate(Some((Self::FRAME_RATE, 1)));
-    }
-
-    /// Get codec.
-    /// Use a user specificed codec if possible
-    /// If it is not available, then try libx264 or use whatever default h264 encoder we have.
-    fn codec(&self) -> Option<AvCodec> {
-        if self.codec.is_some() {
-            return self.codec;
-        }
-
-        Some(
-            ffmpeg::encoder::find_by_name("libx264")
-                .unwrap_or(ffmpeg::encoder::find(AvCodecId::H264)?),
-        )
     }
 
     /// Get encoder options.
